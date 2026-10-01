@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, AlertCircle, Loader2, Sparkles } from 'lucide-react';
+import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import { uploadDocumentFile } from '../lib/api';
 import { LegalDocument } from '../types';
 
@@ -20,7 +20,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onDocumentUpload
 
     const ext = file.name.split('.').pop()?.toLowerCase();
     if (ext !== 'pdf' && ext !== 'docx') {
-      setErrorMessage('Invalid file format. Only PDF and DOCX documents are supported.');
+      setErrorMessage('Please upload a PDF or DOCX file.');
       return;
     }
 
@@ -29,7 +29,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onDocumentUpload
       const uploadedDoc = await uploadDocumentFile(file);
       onDocumentUploaded(uploadedDoc);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to upload document.');
+      setErrorMessage(err.message || 'Upload failed.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -50,10 +50,10 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onDocumentUpload
           handleFileSelect(e.dataTransfer.files);
         }}
         onClick={() => fileInputRef.current?.click()}
-        className={`group relative border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 overflow-hidden ${
+        className={`border border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
           isDragging
-            ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/10 scale-[1.01]'
-            : 'border-slate-700/80 bg-slate-900/60 hover:bg-slate-800/80 hover:border-slate-500 shadow-inner'
+            ? 'border-blue-500 bg-blue-500/10'
+            : 'border-slate-700 bg-slate-900/50 hover:bg-slate-800/80 hover:border-slate-600'
         }`}
       >
         <input
@@ -65,33 +65,22 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onDocumentUpload
         />
 
         {isUploading ? (
-          <div className="flex flex-col items-center justify-center py-3 text-blue-400">
-            <div className="relative mb-3">
-              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-md animate-pulse"></div>
-              <Loader2 className="w-8 h-8 animate-spin text-blue-400 relative z-10" />
-            </div>
-            <p className="text-xs font-bold text-slate-200">Processing Contract Text...</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Extracting pages & building clause index</p>
+          <div className="flex items-center justify-center space-x-2 py-2 text-blue-400 text-xs font-medium">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Processing document...</span>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center">
-            <div className="p-3 bg-gradient-to-tr from-blue-600/20 to-indigo-600/20 text-blue-400 rounded-2xl mb-2.5 group-hover:scale-110 transition-transform duration-300 border border-blue-500/20">
-              <UploadCloud className="w-6 h-6" />
-            </div>
-            <p className="text-xs font-bold text-slate-200 group-hover:text-blue-300 transition-colors">
-              Upload Contract (PDF or DOCX)
-            </p>
-            <p className="text-[11px] text-slate-400 mt-1">
-              Drag & drop file or click to browse (up to 150+ pgs)
-            </p>
+          <div className="flex items-center justify-center space-x-2 text-xs text-slate-300">
+            <Upload className="w-4 h-4 text-blue-400 flex-shrink-0" />
+            <span className="font-semibold">Upload Contract (PDF / DOCX)</span>
           </div>
         )}
       </div>
 
       {errorMessage && (
-        <div className="mt-3 flex items-start space-x-2 bg-rose-500/10 border border-rose-500/20 text-rose-300 p-3 rounded-xl text-xs backdrop-blur-sm animate-in fade-in">
-          <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-          <span className="leading-relaxed">{errorMessage}</span>
+        <div className="mt-2 text-rose-400 text-[11px] flex items-center space-x-1.5 p-2 bg-rose-500/10 rounded-lg border border-rose-500/20">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>{errorMessage}</span>
         </div>
       )}
     </div>

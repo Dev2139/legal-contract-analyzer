@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { LegalDocument, DocumentPage, Citation } from '../types';
 import { fetchDocumentPages } from '../lib/api';
-import { BookOpen, ChevronLeft, ChevronRight, Search, Highlighter, CheckCircle2, FileText, ZoomIn, ZoomOut, RotateCcw, Copy, Check } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Search, FileText, ZoomIn, ZoomOut, RotateCcw, Copy, Check } from 'lucide-react';
 
 interface DocumentViewerProps {
   document: LegalDocument | null;
@@ -47,13 +47,11 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, target
 
   if (!document) {
     return (
-      <div className="flex-1 bg-slate-950 flex flex-col items-center justify-center text-slate-500 p-8 border-l border-slate-800">
-        <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 mb-3">
-          <BookOpen className="w-10 h-10 text-slate-700" />
-        </div>
-        <h3 className="text-sm font-bold text-slate-300">No Document Selected</h3>
-        <p className="text-xs text-slate-500 mt-1 max-w-xs text-center leading-relaxed">
-          Select a contract from the library or click a verified quote card in chat to inspect its exact source text.
+      <div className="flex-1 bg-slate-950 flex flex-col items-center justify-center text-slate-500 p-6 border-l border-slate-800">
+        <BookOpen className="w-8 h-8 mb-2 text-slate-700" />
+        <h3 className="text-xs font-semibold text-slate-400">Document Viewer</h3>
+        <p className="text-[11px] text-slate-500 mt-1 max-w-xs text-center">
+          Click a verified quote in chat to view and highlight its source passage.
         </p>
       </div>
     );
@@ -69,7 +67,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, target
 
     return parts.map((part, i) =>
       part.toLowerCase() === term.toLowerCase() ? (
-        <mark key={i} className="bg-amber-400/30 text-amber-200 px-1 py-0.5 rounded border border-amber-400/50 font-bold shadow-sm">
+        <mark key={i} className="bg-amber-400/30 text-amber-200 px-1 py-0.5 rounded border border-amber-400/50 font-bold">
           {part}
         </mark>
       ) : (
@@ -87,12 +85,10 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, target
   return (
     <div className="flex-1 bg-slate-950 border-l border-slate-800 flex flex-col h-full overflow-hidden text-slate-200">
       {/* Viewer Header */}
-      <div className="p-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between backdrop-blur-md">
-        <div className="flex items-center space-x-2.5 min-w-0">
-          <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20">
-            <FileText className="w-4 h-4" />
-          </div>
-          <h3 className="text-xs font-bold text-slate-200 truncate max-w-[200px]" title={document.originalName}>
+      <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div className="flex items-center space-x-2 min-w-0">
+          <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          <h3 className="text-xs font-semibold text-slate-200 truncate max-w-[180px]" title={document.originalName}>
             {document.originalName}
           </h3>
         </div>
@@ -101,40 +97,14 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, target
         <div className="flex items-center space-x-2">
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" />
             <input
               type="text"
-              placeholder="Search in viewer..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-3 py-1 text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-36 transition-all"
+              className="bg-slate-950 border border-slate-800 rounded-lg pl-7 pr-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-28"
             />
-          </div>
-
-          {/* Zoom Buttons */}
-          <div className="hidden sm:flex items-center space-x-1 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs">
-            <button
-              onClick={() => setZoomLevel((z) => Math.max(75, z - 10))}
-              className="text-slate-400 hover:text-white p-0.5"
-              title="Zoom out"
-            >
-              <ZoomOut className="w-3.5 h-3.5" />
-            </button>
-            <span className="text-[11px] font-bold text-slate-400 px-1">{zoomLevel}%</span>
-            <button
-              onClick={() => setZoomLevel((z) => Math.min(150, z + 10))}
-              className="text-slate-400 hover:text-white p-0.5"
-              title="Zoom in"
-            >
-              <ZoomIn className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => setZoomLevel(100)}
-              className="text-slate-500 hover:text-slate-300 p-0.5 ml-1 border-l border-slate-800"
-              title="Reset Zoom"
-            >
-              <RotateCcw className="w-3 h-3" />
-            </button>
           </div>
 
           {/* Page Navigator */}
@@ -150,7 +120,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, target
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-bold text-slate-300 text-[11px]">
+            <span className="font-semibold text-slate-300 text-[11px]">
               {currentPage} / {pages.length || document.pageCount || 1}
             </span>
             <button
@@ -168,26 +138,15 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, target
         </div>
       </div>
 
-      {/* Target Citation Highlight Banner */}
-      {targetCitation && (
-        <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2 flex items-center justify-between text-xs text-amber-300">
-          <div className="flex items-center space-x-2 truncate">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-            <span className="font-bold">Verified Quote Highlight on Page {targetCitation.page}:</span>
-            <span className="italic truncate text-amber-200">"{targetCitation.quote}"</span>
-          </div>
-        </div>
-      )}
-
-      {/* Pages Stream View */}
-      <div ref={containerRef} className="flex-1 overflow-y-auto p-6 space-y-6">
+      {/* Pages View Container */}
+      <div ref={containerRef} className="flex-1 overflow-y-auto p-5 space-y-4">
         {loading ? (
-          <div className="text-center py-16 text-slate-400 text-xs font-bold">
-            Loading document pages...
+          <div className="text-center py-12 text-slate-400 text-xs">
+            Loading document...
           </div>
         ) : pages.length === 0 ? (
-          <div className="text-center py-16 text-slate-400 text-xs font-semibold">
-            No page text available.
+          <div className="text-center py-12 text-slate-400 text-xs">
+            No readable text pages found.
           </div>
         ) : (
           pages.map((p) => {
@@ -198,39 +157,23 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, target
                 ref={(el) => {
                   if (el) pageRefs.current.set(p.pageNumber, el);
                 }}
-                style={{ fontSize: `${(zoomLevel / 100) * 0.75}rem` }}
-                className={`group relative bg-slate-900 border rounded-2xl p-6 shadow-md transition-all duration-300 ${
+                className={`bg-slate-900 border rounded-xl p-5 shadow-sm transition-colors ${
                   isTargetPage
-                    ? 'border-amber-500/80 ring-2 ring-amber-500/30 shadow-lg shadow-amber-500/10'
+                    ? 'border-amber-500/80 ring-1 ring-amber-500/30'
                     : 'border-slate-800'
                 }`}
               >
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                      Page {p.pageNumber}
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3 text-[11px] text-slate-400 font-semibold">
+                  <span>Page {p.pageNumber}</span>
+                  {isTargetPage && (
+                    <span className="text-amber-400 font-bold bg-amber-500/10 px-2 py-0.5 rounded">
+                      Highlighted Source
                     </span>
-                    {isTargetPage && (
-                      <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-extrabold px-2 py-0.5 rounded">
-                        Target Passage
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => handleCopyPageText(p.text, p.pageNumber)}
-                    className="text-slate-500 hover:text-slate-300 p-1 rounded transition-colors text-xs flex items-center space-x-1"
-                    title="Copy page text"
-                  >
-                    {copiedPage === p.pageNumber ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5" />
-                    )}
-                  </button>
+                  )}
                 </div>
 
-                <div className="whitespace-pre-wrap font-mono text-slate-300 leading-relaxed">
+                {/* Clean Readable Sans-Serif Document Text */}
+                <div className="whitespace-pre-wrap font-sans text-xs text-slate-200 leading-relaxed">
                   {highlightText(
                     p.text,
                     isTargetPage ? targetCitation.quote : undefined,

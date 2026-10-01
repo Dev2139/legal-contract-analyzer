@@ -1,5 +1,5 @@
-import React from 'react';
-import { CheckCircle2, AlertCircle, ArrowUpRight, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, AlertCircle, ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { Citation } from '../types';
 
 interface CitationCardProps {
@@ -8,53 +8,42 @@ interface CitationCardProps {
 }
 
 export const CitationCard: React.FC<CitationCardProps> = ({ citation, onSelectCitation }) => {
+  const [expanded, setExpanded] = useState(false);
+
   return (
-    <div
-      onClick={() => citation.verified && onSelectCitation(citation)}
-      className={`p-3.5 rounded-2xl border transition-all duration-300 ${
-        citation.verified
-          ? 'bg-slate-950/80 border-slate-800/90 hover:border-blue-500/70 hover:bg-slate-900/90 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer group'
-          : 'bg-amber-500/5 border-amber-500/20 text-amber-200'
-      }`}
-    >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-2">
+    <div className="my-1.5 inline-block w-full">
+      <div
+        onClick={() => citation.verified && onSelectCitation(citation)}
+        className={`flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer ${
+          citation.verified
+            ? 'bg-slate-900 border-slate-700/80 hover:border-blue-500 hover:bg-slate-850'
+            : 'bg-amber-500/5 border-amber-500/20 text-amber-300'
+        }`}
+      >
+        <div className="flex items-center space-x-2 min-w-0 flex-1">
           {citation.verified ? (
-            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm">
-              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-              <span>Verified Quote</span>
-            </span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           ) : (
-            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <AlertCircle className="w-3 h-3 text-amber-400" />
-              <span>Unverified / Paraphrased</span>
-            </span>
+            <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
           )}
 
-          {citation.documentName && (
-            <span className="text-[11px] text-slate-400 font-semibold truncate max-w-[150px]">
-              {citation.documentName}
+          <div className="min-w-0 flex-1 truncate text-xs">
+            <span className="font-semibold text-slate-200 mr-2">
+              {citation.verified ? 'Verified Evidence' : 'Unverified Quote'}
             </span>
-          )}
+            <span className="text-slate-400 italic truncate">
+              "{citation.quote}"
+            </span>
+          </div>
         </div>
 
         {citation.verified && (
-          <div className="flex items-center space-x-1 text-[11px] font-bold text-blue-400 group-hover:text-blue-300">
+          <div className="flex items-center space-x-2 text-xs text-blue-400 font-semibold flex-shrink-0 ml-2">
             <span>Page {citation.page}</span>
-            <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            <ArrowUpRight className="w-3.5 h-3.5" />
           </div>
         )}
       </div>
-
-      <p className="text-xs text-slate-300 italic font-mono bg-slate-900/80 p-3 rounded-xl border border-slate-800/80 leading-relaxed">
-        "{citation.quote}"
-      </p>
-
-      {!citation.verified && citation.reasoning && (
-        <p className="text-[11px] text-amber-300/80 mt-2 font-medium">
-          Note: {citation.reasoning}
-        </p>
-      )}
     </div>
   );
 };
