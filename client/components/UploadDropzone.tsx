@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, AlertCircle, Loader2 } from 'lucide-react';
+import { UploadCloud, FileText, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import { uploadDocumentFile } from '../lib/api';
 import { LegalDocument } from '../types';
 
@@ -50,10 +50,10 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onDocumentUpload
           handleFileSelect(e.dataTransfer.files);
         }}
         onClick={() => fileInputRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
+        className={`group relative border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 overflow-hidden ${
           isDragging
-            ? 'border-blue-500 bg-blue-500/10'
-            : 'border-slate-700 bg-slate-800/50 hover:bg-slate-800 hover:border-slate-600'
+            ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/10 scale-[1.01]'
+            : 'border-slate-700/80 bg-slate-900/60 hover:bg-slate-800/80 hover:border-slate-500 shadow-inner'
         }`}
       >
         <input
@@ -65,30 +65,33 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({ onDocumentUpload
         />
 
         {isUploading ? (
-          <div className="flex flex-col items-center justify-center py-2 text-blue-400">
-            <Loader2 className="w-8 h-8 animate-spin mb-2" />
-            <p className="text-sm font-semibold">Uploading & parsing document...</p>
-            <p className="text-xs text-slate-400 mt-1">Extracting text and structure</p>
+          <div className="flex flex-col items-center justify-center py-3 text-blue-400">
+            <div className="relative mb-3">
+              <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-md animate-pulse"></div>
+              <Loader2 className="w-8 h-8 animate-spin text-blue-400 relative z-10" />
+            </div>
+            <p className="text-xs font-bold text-slate-200">Processing Contract Text...</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Extracting pages & building clause index</p>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center">
-            <div className="p-3 bg-blue-600/10 text-blue-400 rounded-full mb-3">
+            <div className="p-3 bg-gradient-to-tr from-blue-600/20 to-indigo-600/20 text-blue-400 rounded-2xl mb-2.5 group-hover:scale-110 transition-transform duration-300 border border-blue-500/20">
               <UploadCloud className="w-6 h-6" />
             </div>
-            <p className="text-sm font-semibold text-slate-200">
-              Drop contract PDF or DOCX here
+            <p className="text-xs font-bold text-slate-200 group-hover:text-blue-300 transition-colors">
+              Upload Contract (PDF or DOCX)
             </p>
-            <p className="text-xs text-slate-400 mt-1">
-              Supports large documents up to 150+ pages (max 50MB)
+            <p className="text-[11px] text-slate-400 mt-1">
+              Drag & drop file or click to browse (up to 150+ pgs)
             </p>
           </div>
         )}
       </div>
 
       {errorMessage && (
-        <div className="mt-3 flex items-start space-x-2 bg-rose-500/10 border border-rose-500/20 text-rose-300 p-3 rounded-lg text-xs">
+        <div className="mt-3 flex items-start space-x-2 bg-rose-500/10 border border-rose-500/20 text-rose-300 p-3 rounded-xl text-xs backdrop-blur-sm animate-in fade-in">
           <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-          <span>{errorMessage}</span>
+          <span className="leading-relaxed">{errorMessage}</span>
         </div>
       )}
     </div>

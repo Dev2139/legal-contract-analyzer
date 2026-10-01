@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LegalDocument, ResearchRun, ResearchStep, Citation } from '../types';
 import { streamResearchApi } from '../lib/api';
-import { Sparkles, CheckCircle2, Loader2, Bot, Search, FileText, AlertCircle } from 'lucide-react';
+import { Sparkles, CheckCircle2, Loader2, Bot, AlertCircle } from 'lucide-react';
 import { CitationCard } from './CitationCard';
 
 interface ResearchTimelineProps {
@@ -49,20 +49,20 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ documents, o
   };
 
   return (
-    <div className="flex-1 bg-slate-900 flex flex-col h-full overflow-hidden text-slate-200">
+    <div className="flex-1 bg-slate-950 flex flex-col h-full overflow-hidden text-slate-200">
       {/* Research Controls Banner */}
-      <div className="p-4 bg-slate-950 border-b border-slate-800">
+      <div className="p-4 bg-slate-900/90 border-b border-slate-800 backdrop-blur-md">
         <div className="flex items-center space-x-2 mb-3">
           <Sparkles className="w-5 h-5 text-blue-400" />
           <h2 className="text-sm font-bold text-white">Agentic Multi-Round Contract Research</h2>
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <select
               value={selectedDocId}
               onChange={(e) => setSelectedDocId(e.target.value)}
-              className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+              className="bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 shadow-inner"
             >
               <option value="">-- All Uploaded Contracts --</option>
               {documents.map((d) => (
@@ -74,20 +74,20 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ documents, o
 
             <input
               type="text"
-              placeholder="e.g. Find all termination notice periods and financial penalties across clauses..."
+              placeholder="e.g. Find all termination notice requirements & penalties across clauses..."
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleStartResearch()}
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 shadow-inner"
             />
 
             <button
               onClick={handleStartResearch}
               disabled={isRunning || !question.trim()}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-white font-semibold text-xs px-5 py-2 rounded-xl flex items-center space-x-2 transition-all shadow-lg shadow-blue-600/20"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 text-white font-bold text-xs px-5 py-2.5 rounded-xl flex items-center justify-center space-x-2 transition-all shadow-lg shadow-blue-600/20"
             >
               {isRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              <span>{isRunning ? 'Agent Researching...' : 'Run Agentic Research'}</span>
+              <span>{isRunning ? 'Agent Researching...' : 'Run Agent Research'}</span>
             </button>
           </div>
         </div>
@@ -104,21 +104,21 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ documents, o
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Step-by-Step Live Timeline */}
         {steps.length > 0 && (
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-5 shadow-sm space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-md space-y-3.5 backdrop-blur-sm">
+            <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
               <Bot className="w-4 h-4 text-blue-400" />
-              <span>Agentic Multi-Round Tool Activity Timeline</span>
+              <span>Agentic Multi-Round Tool Timeline</span>
             </h3>
 
             <div className="space-y-2.5">
               {steps.map((st, idx) => (
-                <div key={idx} className="flex items-center space-x-3 text-xs bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                <div key={idx} className="flex items-center space-x-3 text-xs bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-blue-400 uppercase text-[10px] tracking-wider mr-2">
+                    <span className="font-extrabold text-blue-400 uppercase text-[10px] tracking-wider mr-2 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
                       Tool: {st.tool}
                     </span>
-                    <span className="text-slate-300">{st.result || `Executing step ${st.stepNumber}...`}</span>
+                    <span className="text-slate-300 font-medium">{st.result || `Executing round ${st.stepNumber}...`}</span>
                   </div>
                 </div>
               ))}
@@ -128,7 +128,7 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ documents, o
 
         {/* Final Research Findings */}
         {researchRun && researchRun.finalAnswer && (
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-6 shadow-md space-y-4">
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-md space-y-4 backdrop-blur-sm">
             <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
               <Sparkles className="w-5 h-5 text-blue-400" />
               <h3 className="text-sm font-bold text-white">Synthesized Agentic Research Findings</h3>
@@ -153,7 +153,7 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ documents, o
 
         {!isRunning && steps.length === 0 && (
           <div className="text-center py-20 text-slate-500 text-xs">
-            Enter a research prompt above and click "Run Agentic Research" to launch multi-round tool calling.
+            Enter a research prompt above and click "Run Agent Research" to launch multi-round autonomous tool execution.
           </div>
         )}
       </div>

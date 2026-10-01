@@ -9,7 +9,7 @@ import { ResearchTimeline } from '../components/ResearchTimeline';
 import { DocumentViewer } from '../components/DocumentViewer';
 import { fetchDocuments, deleteDocumentById } from '../lib/api';
 import { LegalDocument, Citation } from '../types';
-import { MessageSquare, GitCompare, Sparkles, BookOpen } from 'lucide-react';
+import { MessageSquare, GitCompare, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
@@ -32,7 +32,6 @@ export default function Home() {
 
   useEffect(() => {
     loadDocuments();
-    // Poll document list every 5s for background processing updates
     const interval = setInterval(loadDocuments, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -83,10 +82,11 @@ export default function Home() {
 
   const activeDoc = documents.find((d) => d._id === activeDocId) || null;
   const selectedDocs = documents.filter((d) => selectedDocIds.includes(d._id));
+  const readyCount = documents.filter((d) => d.status === 'ready').length;
 
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      <Header />
+      <Header documentCount={documents.length} readyCount={readyCount} />
 
       {/* Main Workspace Layout */}
       <div className="flex-1 flex overflow-hidden">
@@ -102,9 +102,9 @@ export default function Home() {
         />
 
         {/* Center Column: Mode Tabs & Active Tool */}
-        <main className="flex-1 flex flex-col min-w-0 bg-slate-900 border-r border-slate-800 overflow-hidden">
+        <main className="flex-1 flex flex-col min-w-0 bg-slate-950 border-r border-slate-800 overflow-hidden">
           {/* Navigation Bar Tabs */}
-          <div className="flex items-center space-x-1 bg-slate-950 border-b border-slate-800 px-4 py-2 text-xs">
+          <div className="flex items-center space-x-1.5 bg-slate-950 border-b border-slate-800 px-4 py-2.5 text-xs">
             <button
               onClick={() => setActiveTab('chat')}
               className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold transition-all ${
