@@ -14,7 +14,7 @@ export interface RetrievedChunk {
 
 export class RetrievalService {
   /**
-   * Retrieves top-K relevant chunks across one or multiple documents using BM25/keyword scoring.
+   * Enhanced Lexical Retrieval with Legal Synonym Expansion & Keyword BM25 Scoring.
    */
   public static async retrieveRelevantChunks(
     documentIds: string[],
@@ -32,7 +32,28 @@ export class RetrievalService {
     const cleanQuery = cleanText(query);
     const queryTokens = cleanQuery.split(' ').filter((t) => t.length > 2);
 
-    // Compute Term Frequency and BM25 scores
+    // Legal domain synonym dictionary for query expansion
+    const legalSynonyms: Record<string, string[]> = {
+      liability: ['liability', 'cap', 'limit', 'aggregate', 'indemnity', 'damages', 'maximum'],
+      termination: ['terminate', 'termination', 'cancel', 'notice', 'convenience', 'breach', 'cure'],
+      payment: ['payment', 'fee', 'retainer', 'invoice', 'due', 'interest', 'compensation'],
+      governing: ['governing', 'law', 'jurisdiction', 'court', 'dispute', 'laws'],
+      confidentiality: ['confidential', 'disclosure', 'secret', 'proprietary', 'non-disclosure'],
+    };
+
+    // Expand search terms
+    const expandedTokens = new Set<string>(queryTokens);
+    for (const qToken of queryTokens) {
+      for (const [key, synonyms] of Object.entries(legalSynonyms)) {
+        if (qToken.includes(key) || key.includes(qToken)) {
+          synonyms.forEach((syn) => expandedTokens.add(syn));
+        }
+      }
+    }
+
+    const searchTerms = Array.from(expandedTokens);
+
+    // Compute relevance scores
     const scoredChunks: RetrievedChunk[] = chunks.map((c) => {
       const docName = (c.documentId as any)?.originalName || 'Contract';
       const chunkTextClean = cleanText(c.text);
@@ -40,24 +61,26 @@ export class RetrievalService {
 
       let score = 0;
 
-      for (const token of queryTokens) {
-        // Keyword match in chunk body
-        const occurrences = (chunkTextClean.match(new RegExp(`\\b${token}\\b`, 'g')) || []).length;
-        if (occurrences > 0) {
-          score += (1 + Math.log(occurrences)) * 2;
+      for (const token of searchTerms) {
+        // Body occurrence match
+        const regex = new RegExp(`\\b${token}\\b`, 'g');
+        const matches = (chunkTextClean.match(regex) || []).length;
+
+        if (matches > 0) {
+          score += (1 + Math.log(matches)) * 3;
         } else if (chunkTextClean.includes(token)) {
-          score += 1;
+          score += 1.5;
         }
 
-        // Extra boost for matching section header
+        // Header match boost
         if (sectionClean.includes(token)) {
-          score += 5;
+          score += 6;
         }
       }
 
-      // Check phrase match boost
-      if (cleanQuery.length > 5 && chunkTextClean.includes(cleanQuery)) {
-        score += 10;
+      // Exact phrase match bonus
+      if (cleanQuery.length > 4 && chunkTextClean.includes(cleanQuery)) {
+        score += 15;
       }
 
       return {
@@ -75,10 +98,8 @@ export class RetrievalService {
     // Sort descending by score
     scoredChunks.sort((a, b) => b.score - a.score);
 
-    // If query has low top score or broad question, include top N diverse chunks
+    // Return top matching chunks or fallback to initial chunks if query is broad
     const topResults = scoredChunks.slice(0, topK);
-    
-    // If no good match, return top chunks anyway so model has context to answer absence
     if (topResults.every((r) => r.score === 0)) {
       return scoredChunks.slice(0, Math.min(chunks.length, topK));
     }

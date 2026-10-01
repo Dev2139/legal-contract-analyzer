@@ -13,78 +13,83 @@ export interface ChunkResult {
 
 export class ChunkingService {
   /**
-   * Splits pages into chunks preserving section headers and location metadata.
+   * Splits document pages into semantic chunks with overlapping context
+   * and clean section header detection.
    */
   public static chunkPages(pages: PageExtract[]): ChunkResult[] {
     const chunks: ChunkResult[] = [];
     let globalChunkIndex = 0;
     let globalCharOffset = 0;
-    let currentSection = 'General Provisions';
+    let currentSection = 'General Terms & Provisions';
 
-    const sectionRegex = /^(SECTION|ARTICLE|CLAUSE|\d+[\.\)]|[A-Z\s]{4,25}$)/i;
+    const sectionRegex = /^(SECTION|ARTICLE|CLAUSE|\d+[\.\)]|[A-Z0-9\s]{4,40}$)/i;
 
     for (const page of pages) {
       const pageNum = page.pageNumber;
-      const lines = page.text.split('\n');
+      const paragraphs = page.text.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
 
-      let currentBuffer = '';
+      let currentChunkText = '';
       let chunkStartOffset = globalCharOffset;
 
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
+      for (const paragraph of paragraphs) {
+        const trimmedP = paragraph.trim().replace(/\s+/g, ' ');
+        if (!trimmedP) continue;
 
-        // Detect section headers
-        if (trimmed.length < 80 && (sectionRegex.test(trimmed) || /^[0-9]+\.[0-9]*/.test(trimmed))) {
-          // If buffer is substantial, flush as chunk
-          if (currentBuffer.trim().length > 100) {
+        // Check if paragraph starts with or is a section header
+        const firstLine = trimmedP.split(/\n|\./)[0].trim();
+        if (firstLine.length < 80 && (sectionRegex.test(firstLine) || /^[0-9]+\.[0-9]*/.test(firstLine))) {
+          if (currentChunkText.length > 80) {
             chunks.push({
               pageNumber: pageNum,
               chunkIndex: globalChunkIndex++,
               section: currentSection,
-              text: currentBuffer.trim(),
-              normalizedText: normalizeString(currentBuffer),
+              text: currentChunkText.trim(),
+              normalizedText: normalizeString(currentChunkText),
               startCharIndex: chunkStartOffset,
-              endCharIndex: chunkStartOffset + currentBuffer.length,
+              endCharIndex: chunkStartOffset + currentChunkText.length,
             });
-            globalCharOffset += currentBuffer.length;
-            currentBuffer = '';
+            globalCharOffset += currentChunkText.length;
+            currentChunkText = '';
             chunkStartOffset = globalCharOffset;
           }
-          currentSection = trimmed;
+          currentSection = firstLine;
         }
 
-        currentBuffer += (currentBuffer ? ' ' : '') + trimmed;
+        // Accumulate paragraph text
+        currentChunkText += (currentChunkText ? '\n\n' : '') + trimmedP;
 
-        // If chunk exceeds ~600 words / 2500 chars, flush
-        if (currentBuffer.length >= 2000) {
+        // Flush chunk when size reaches optimal context window (~1000 chars)
+        if (currentChunkText.length >= 1000) {
           chunks.push({
             pageNumber: pageNum,
             chunkIndex: globalChunkIndex++,
             section: currentSection,
-            text: currentBuffer.trim(),
-            normalizedText: normalizeString(currentBuffer),
+            text: currentChunkText.trim(),
+            normalizedText: normalizeString(currentChunkText),
             startCharIndex: chunkStartOffset,
-            endCharIndex: chunkStartOffset + currentBuffer.length,
+            endCharIndex: chunkStartOffset + currentChunkText.length,
           });
-          globalCharOffset += currentBuffer.length;
-          currentBuffer = '';
-          chunkStartOffset = globalCharOffset;
+          globalCharOffset += currentChunkText.length;
+          
+          // Retain overlap (~150 chars) for sentence continuity across boundaries
+          const overlap = currentChunkText.slice(-150);
+          currentChunkText = overlap;
+          chunkStartOffset = globalCharOffset - overlap.length;
         }
       }
 
-      // Flush remaining buffer for page
-      if (currentBuffer.trim().length > 0) {
+      // Flush remaining page text
+      if (currentChunkText.trim().length > 0) {
         chunks.push({
           pageNumber: pageNum,
           chunkIndex: globalChunkIndex++,
           section: currentSection,
-          text: currentBuffer.trim(),
-          normalizedText: normalizeString(currentBuffer),
+          text: currentChunkText.trim(),
+          normalizedText: normalizeString(currentChunkText),
           startCharIndex: chunkStartOffset,
-          endCharIndex: chunkStartOffset + currentBuffer.length,
+          endCharIndex: chunkStartOffset + currentChunkText.length,
         });
-        globalCharOffset += currentBuffer.length;
+        globalCharOffset += currentChunkText.length;
       }
     }
 
