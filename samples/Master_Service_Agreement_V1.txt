@@ -1,0 +1,20 @@
+MASTER SERVICES AGREEMENT
+
+Section 1. Definitions and Scope
+1.1 "Services" refers to cloud application development provided by Supplier to Customer.
+1.2 "Fees" refers to all compensation payable under this Agreement.
+
+Section 2. Compensation & Payment Terms
+2.1 Customer shall pay Supplier an annual retainer fee of AED 500,000 payable quarterly in advance within 30 days of invoice.
+2.2 Late payments shall accrue interest at 1.5% per month.
+
+Section 3. Liability and Limitation
+3.1 Maximum aggregate liability of Supplier under this Agreement shall be strictly capped at AED 1,000,000 or total fees paid in the preceding 12 months, whichever is lower.
+3.2 In no event shall either party be liable for indirect, consequential, or punitive damages.
+
+Section 4. Termination
+4.1 Either party may terminate this Agreement for convenience by providing at least 60 days written notice to the other party.
+4.2 In the event of a material breach, the non-breaching party may terminate immediately upon written notice if uncured after 15 days.
+
+Section 5. Governing Law
+5.1 This Agreement shall be governed by and construed in accordance with the laws of the United Arab Emirates.
