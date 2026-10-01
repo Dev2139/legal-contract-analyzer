@@ -12,8 +12,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.className} h-full dark`}>
-      <body className="h-full bg-slate-950 text-slate-100 overflow-hidden">{children}</body>
+    <html lang="en" className={`${inter.className} h-full dark`} suppressHydrationWarning>
+      <body className="h-full bg-slate-950 text-slate-100 overflow-hidden" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }
