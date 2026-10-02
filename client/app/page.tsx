@@ -10,14 +10,16 @@ import { ResearchTimeline } from '../components/ResearchTimeline';
 import { DocumentViewer } from '../components/DocumentViewer';
 import { fetchDocuments, deleteDocumentById } from '../lib/api';
 import { LegalDocument, Citation } from '../types';
-import { MessageSquare, GitCompare, Search } from 'lucide-react';
+import { MessageSquare, GitCompare, Search, Award } from 'lucide-react';
+import { ClauseExtractor } from '../components/ClauseExtractor';
 
 export default function Home() {
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
   const activeDocIdRef = useRef<string | null>(null);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<'chat' | 'comparison' | 'research'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'comparison' | 'research' | 'clauses'>('chat');
+
   const [targetCitation, setTargetCitation] = useState<Citation | null>(null);
 
   // Responsive Sidebar Toggle States
@@ -190,7 +192,6 @@ export default function Home() {
                   <GitCompare className="w-3.5 h-3.5" />
                   <span>Compare Versions</span>
                 </button>
-
                 <button
                   onClick={() => setActiveTab('research')}
                   className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
@@ -200,7 +201,19 @@ export default function Home() {
                   }`}
                 >
                   <Search className="w-3.5 h-3.5" />
-                  <span>Deep Analysis</span>
+                  <span>Agentic Research</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('clauses')}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    activeTab === 'clauses'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  <span>Extract Clauses</span>
                 </button>
               </div>
 
@@ -226,8 +239,15 @@ export default function Home() {
                   onSelectCitation={handleSelectCitation}
                 />
               )}
+              {activeTab === 'clauses' && (
+                <ClauseExtractor
+                  document={activeDoc}
+                  onSelectCitation={handleSelectCitation}
+                />
+              )}
             </div>
           </main>
+
 
           {/* Right Panel: Document Viewer */}
           {rightSidebarOpen && (
