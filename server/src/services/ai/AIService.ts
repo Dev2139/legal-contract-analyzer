@@ -35,17 +35,18 @@ export class AIService {
     const contextText = chunks
       .map(
         (c, idx) =>
-          `[Source ${idx + 1} | Document ID: ${c.documentId} | Document: ${c.documentName} | Page ${c.pageNumber} | Section: ${c.section}]\n${c.text}`
+          `[Source ${idx + 1} | Document: ${c.documentName} | Page ${c.pageNumber} | Section: ${c.section}]\n${c.text}`
       )
       .join('\n\n---\n\n');
 
-    const prompt = `You are an expert legal contract AI analyst. Answer the user's question accurately using ONLY the provided contract evidence below.
+    const prompt = `You are an executive legal contract analyst. Answer the user's question directly, clearly, and concisely.
 
 INSTRUCTIONS:
-1. Ground your answer strictly on the supplied contract evidence.
-2. If the document does not contain sufficient evidence to answer the question, state: "I could not find sufficient evidence in the document to answer this confidently."
-3. Do NOT invent facts or quotations.
-4. Always support key findings with exact quotations inside double quotes.
+1. Provide a direct, plain-English summary answer in your very first paragraph. Do not start with generic preamble.
+2. Use bullet points for breakdown, numbers, milestones, or terms if applicable.
+3. Ground your answer strictly on the supplied contract evidence below.
+4. Support key findings with exact quotations inside double quotes.
+5. If the evidence does not answer the question, state: "I could not find relevant evidence in the document to answer this question."
 
 CONTRACT EVIDENCE:
 ${contextText || 'No contract text found.'}
@@ -77,7 +78,7 @@ ${query}`;
           }
         }
       } catch (err: any) {
-        console.warn('OpenAI API call failed or unconfigured, using fallback contract reasoning engine:', err.message);
+        console.warn('OpenAI API call failed or unconfigured, using fallback reasoning engine:', err.message);
         fullAnswer = await AIService.fallbackContractReasoning(query, chunks, onChunk, signal);
       }
     } else {
@@ -96,7 +97,7 @@ ${query}`;
       }
     }
 
-    // If no explicit quotes in answer text, extract key sentences from top retrieved chunks
+    // If no explicit quotes in answer text, extract key sentence from top retrieved chunk
     if (rawQuotes.length === 0 && chunks.length > 0 && chunks[0].score > 0) {
       const sentences = chunks[0].text.split(/(?<=[.!?])\s+/).filter((s) => s.length > 15);
       if (sentences.length > 0) {
@@ -114,8 +115,8 @@ ${query}`;
   }
 
   /**
-   * Advanced local legal reasoning engine that synthesizes answers, extracts exact quotes,
-   * and maps clause evidence when OpenAI API key is unavailable.
+   * Executive-first local contract reasoning engine that provides direct, concise,
+   * to-the-point answers with exact quote evidence when OpenAI key is absent/unreachable.
    */
   private static async fallbackContractReasoning(
     query: string,
@@ -126,20 +127,25 @@ ${query}`;
     const validChunks = chunks.filter((c) => c.score > 0);
 
     if (validChunks.length === 0) {
-      const msg = `I could not find any relevant clauses or evidence in the selected document(s) regarding "${query}".`;
+      const msg = `I could not find any relevant clauses or evidence in the document(s) answering "${query}".`;
       for (const char of msg) {
         if (signal?.aborted) break;
         onChunk(char);
-        await new Promise((r) => setTimeout(r, 10));
+        await new Promise((r) => setTimeout(r, 8));
       }
       return msg;
     }
 
-    // Pick top relevant chunk
     const topChunk = validChunks[0];
     const cleanQ = query.toLowerCase();
 
-    // Extract key sentences matching query words
+    // Check query intent (money/cost, notice/termination, governing law, scope)
+    const isMoneyQuery = /money|cost|price|amount|payment|fee|rupees|rs|inr|₹|\$/i.test(cleanQ);
+
+    // Extract monetary amounts if present (e.g. ₹1,65,000, $50,000, 20%)
+    const moneyMatches = topChunk.text.match(/(?:₹|\$|USD|INR|Rs\.?)\s*[\d,]+(?:\.\d+)?|\b[\d,]+\s*(?:rupees|dollars|inr|rs)\b/gi) || [];
+
+    // Extract key sentences matching query
     const sentences = topChunk.text.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 10);
     const matchedSentence =
       sentences.find((s) => {
@@ -147,26 +153,32 @@ ${query}`;
         return cleanQ.split(' ').some((w) => w.length > 3 && sLower.includes(w));
       }) || sentences[0] || topChunk.text.slice(0, 180);
 
+    let directAnswer = '';
+
+    if (isMoneyQuery && moneyMatches.length > 0) {
+      directAnswer = `The total financial amount specified in **${topChunk.documentName}** is **${moneyMatches.join(', ')}** (under *${topChunk.section}*).`;
+    } else {
+      directAnswer = `According to **${topChunk.documentName}** (Page ${topChunk.pageNumber}, *${topChunk.section}*): ${matchedSentence.trim()}`;
+    }
+
     const textToStream =
-      `Based on contract evidence from **${topChunk.documentName || 'Document'}** (Page ${topChunk.pageNumber}, *${topChunk.section}*):\n\n` +
-      `### Key Clause Evidence:\n` +
-      `> "${matchedSentence.trim()}"\n\n` +
-      `### Detailed Analysis:\n` +
-      `- **Section Reference:** ${topChunk.section}\n` +
-      `- **Primary Obligation / Provision:** ${matchedSentence.trim()}\n` +
+      `${directAnswer}\n\n` +
+      `### Key Details & Clause Provisions:\n` +
+      `- **Section:** ${topChunk.section} (Page ${topChunk.pageNumber})\n` +
+      `- **Clause Excerpt:** "${matchedSentence.trim()}"\n` +
       (validChunks.length > 1
-        ? `- **Supporting Context (Page ${validChunks[1].pageNumber} - ${validChunks[1].section}):** "${validChunks[1].text.slice(0, 140).trim()}..."\n`
-        : '') +
-      `\n*All extracted quotations have been verified directly against source text.*`;
+        ? `- **Additional Context (Page ${validChunks[1].pageNumber} - ${validChunks[1].section}):** "${validChunks[1].text.slice(0, 130).trim()}..."\n`
+        : '');
 
     for (let i = 0; i < textToStream.length; i += 4) {
       if (signal?.aborted) break;
       const part = textToStream.slice(i, i + 4);
       onChunk(part);
-      await new Promise((r) => setTimeout(r, 12));
+      await new Promise((r) => setTimeout(r, 10));
     }
 
     return textToStream;
   }
 }
+
 
