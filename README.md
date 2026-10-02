@@ -1,6 +1,6 @@
 # Legal Contract Analyzer — Zero-Trust Legal AI Contract Intelligence Platform ⚖️
 
-![Legal Contract Analyzer Banner](https://res.cloudinary.com/urzka7oz/image/upload/v1790944265/Screenshot_2026-10-02_175526.png)
+![Legal Contract Analyzer Banner](https://res.cloudinary.com/urzka7oz/image/upload/v1790944866/Legal_Contract_Analyzer_Dashboard.png)
 
 <div align="center">
 
