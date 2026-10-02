@@ -8,7 +8,9 @@ import { ChatWindow } from '../components/ChatWindow';
 import { ComparisonView } from '../components/ComparisonView';
 import { ResearchTimeline } from '../components/ResearchTimeline';
 import { DocumentViewer } from '../components/DocumentViewer';
+import { AISettingsModal } from '../components/AISettingsModal';
 import { fetchDocuments, deleteDocumentById } from '../lib/api';
+import { ClientStorage, StoredAIConfig } from '../lib/storage';
 import { LegalDocument, Citation } from '../types';
 import { MessageSquare, GitCompare, Search, Award } from 'lucide-react';
 import { ClauseExtractor } from '../components/ClauseExtractor';
@@ -27,6 +29,14 @@ export default function Home() {
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // AI Modal and Config State
+  const [isAISettingsOpen, setIsAISettingsOpen] = useState(false);
+  const [aiConfig, setAiConfig] = useState<StoredAIConfig>({
+    provider: 'local',
+    apiKey: '',
+    model: '',
+  });
+
   // Helper to update active document state & ref synchronously
   const setActiveDocument = (id: string | null) => {
     activeDocIdRef.current = id;
@@ -43,6 +53,8 @@ export default function Home() {
         setIsDarkMode(false);
         document.documentElement.classList.remove('dark');
       }
+
+      setAiConfig(ClientStorage.getAIConfig());
     }
   }, []);
 
@@ -65,7 +77,6 @@ export default function Home() {
       .then((docs) => {
         if (Array.isArray(docs)) {
           setDocuments(docs);
-          // Only auto-select first document on initial load if NO document is active
           if (docs.length > 0 && !activeDocIdRef.current) {
             setActiveDocument(docs[0]._id);
             setSelectedDocIds([docs[0]._id]);
@@ -73,18 +84,16 @@ export default function Home() {
         }
       })
       .catch((err) => {
-        // Silently catch connection error when server is starting up or offline
+        console.warn('Failed to load documents:', err);
       });
   };
 
   useEffect(() => {
     loadDocuments();
-    const interval = setInterval(loadDocuments, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   const handleDocumentUploaded = (newDoc: LegalDocument) => {
-    setDocuments((prev) => [newDoc, ...prev]);
+    setDocuments((prev) => [newDoc, ...prev.filter((d) => d._id !== newDoc._id)]);
     setActiveDocument(newDoc._id);
     if (!selectedDocIds.includes(newDoc._id)) {
       setSelectedDocIds((prev) => [...prev, newDoc._id]);
@@ -128,7 +137,6 @@ export default function Home() {
     setRightSidebarOpen(true);
   };
 
-
   const activeDoc = documents.find((d) => d._id === activeDocId) || null;
   const selectedDocs = documents.filter((d) => selectedDocIds.includes(d._id));
   const readyCount = documents.filter((d) => d.status === 'ready').length;
@@ -146,8 +154,10 @@ export default function Home() {
           setRightSidebarOpen={setRightSidebarOpen}
           isDarkMode={isDarkMode}
           setIsDarkMode={handleToggleDarkMode}
+          onOpenAISettings={() => setIsAISettingsOpen(true)}
+          aiProvider={aiConfig.provider}
+          hasApiKey={!!aiConfig.apiKey}
         />
-
 
         {/* Workspace Body */}
         <div className="flex-1 flex overflow-hidden relative">
@@ -248,14 +258,19 @@ export default function Home() {
             </div>
           </main>
 
-
           {/* Right Panel: Document Viewer */}
           {rightSidebarOpen && (
             <DocumentViewer document={activeDoc} targetCitation={targetCitation} />
           )}
         </div>
       </div>
+
+      {/* AI Settings Modal */}
+      <AISettingsModal
+        isOpen={isAISettingsOpen}
+        onClose={() => setIsAISettingsOpen(false)}
+        onConfigSaved={(cfg) => setAiConfig(cfg)}
+      />
     </div>
   );
 }
-

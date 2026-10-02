@@ -3,14 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npx concurrently \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
-    "dev:server": "npm --prefix server run dev",
-    "dev:client": "npm --prefix client run dev",
-    "build:server": "npm --prefix server run build",
-    "build:client": "npm --prefix client run build",
-    "test:server": "npm --prefix server test",
-    "test": "npm --prefix server test",
-    "typecheck": "npm --prefix server run typecheck && npm --prefix client run typecheck"
+    "dev": "npm --prefix client run dev",
+    "start": "npm --prefix client start",
+    "build": "npm --prefix client run build",
+    "typecheck": "npm --prefix client run typecheck",
+    "lint": "npm --prefix client run lint"
   }
 }
-

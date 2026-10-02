@@ -1,5 +1,5 @@
 import React from 'react';
-import { Scale, PanelLeft, PanelRight, Sun, Moon, FileText } from 'lucide-react';
+import { Scale, PanelLeft, PanelRight, Sun, Moon, FileText, Sparkles, Key } from 'lucide-react';
 
 interface HeaderProps {
   documentCount: number;
@@ -11,6 +11,9 @@ interface HeaderProps {
   setRightSidebarOpen: (open: boolean | ((prev: boolean) => boolean)) => void;
   isDarkMode: boolean;
   setIsDarkMode: (dark: boolean | ((prev: boolean) => boolean)) => void;
+  onOpenAISettings: () => void;
+  aiProvider: 'gemini' | 'openai' | 'local';
+  hasApiKey: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,6 +26,9 @@ export const Header: React.FC<HeaderProps> = ({
   setRightSidebarOpen,
   isDarkMode,
   setIsDarkMode,
+  onOpenAISettings,
+  aiProvider,
+  hasApiKey,
 }) => {
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 px-4 py-2.5 flex items-center justify-between shadow-xs transition-colors z-20">
@@ -66,6 +72,27 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right Action Bar Controls */}
       <div className="flex items-center space-x-2">
+        {/* AI Key & Provider Settings Button */}
+        <button
+          onClick={onOpenAISettings}
+          className={`flex items-center space-x-1.5 text-xs px-2.5 py-1.5 rounded-xl border font-semibold transition-all shadow-xs ${
+            hasApiKey
+              ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-100'
+              : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+          }`}
+          title="Configure AI API Key (Gemini, OpenAI, or Built-in Local Engine)"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+          <span className="hidden sm:inline">
+            {aiProvider === 'gemini'
+              ? (hasApiKey ? 'Gemini AI Active' : 'Set Gemini Key')
+              : aiProvider === 'openai'
+              ? (hasApiKey ? 'OpenAI Active' : 'Set OpenAI Key')
+              : 'Built-in Engine'}
+          </span>
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+        </button>
+
         {/* Toggle Right Panel (Viewer) */}
         <button
           onClick={() => setRightSidebarOpen((prev) => !prev)}
@@ -92,4 +119,3 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
-

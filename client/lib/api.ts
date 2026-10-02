@@ -1,60 +1,54 @@
 import { LegalDocument, DocumentPage, ComparisonResult, ResearchRun } from '../types';
+import { ClientStorage } from './storage';
+import { parseContractFile, parsePastedContract } from './textExtraction';
+import { ClientLegalEngine } from './clientLegalEngine';
+import { AIProviderService } from './aiProvider';
 
-const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-const API_BASE_URL = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl.replace(/\/$/, '')}/api`;
-
-
+/**
+ * Fetch all documents from local client storage
+ */
 export async function fetchDocuments(): Promise<LegalDocument[]> {
-  const res = await fetch(`${API_BASE_URL}/documents`);
-  if (!res.ok) throw new Error('Failed to fetch documents');
-  return res.json();
+  return ClientStorage.getDocuments();
 }
 
+/**
+ * Parse and store uploaded contract file directly in browser
+ */
 export async function uploadDocumentFile(file: File): Promise<LegalDocument> {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  const res = await fetch(`${API_BASE_URL}/documents`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ error: 'Upload failed' }));
-    throw new Error(errorData.error || 'Upload failed');
-  }
-
-  return res.json();
+  return await parseContractFile(file);
 }
 
+/**
+ * Save pasted contract text directly in browser
+ */
+export function uploadPastedContract(title: string, text: string): LegalDocument {
+  return parsePastedContract(title, text);
+}
+
+/**
+ * Delete a document from browser storage
+ */
 export async function deleteDocumentById(id: string): Promise<void> {
-  const res = await fetch(`${API_BASE_URL}/documents/${id}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) throw new Error('Failed to delete document');
+  ClientStorage.removeDocument(id);
 }
 
+/**
+ * Fetch document pages from browser storage
+ */
 export async function fetchDocumentPages(id: string): Promise<DocumentPage[]> {
-  const res = await fetch(`${API_BASE_URL}/documents/${id}/pages`);
-  if (!res.ok) throw new Error('Failed to fetch pages');
-  return res.json();
+  return ClientStorage.getDocumentPages(id);
 }
 
+/**
+ * Compare two contracts clause-by-clause client-side
+ */
 export async function compareTwoContracts(documentA: string, documentB: string): Promise<ComparisonResult> {
-  const res = await fetch(`${API_BASE_URL}/comparison`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ documentA, documentB }),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Comparison failed' }));
-    throw new Error(err.error || 'Comparison failed');
-  }
-
-  return res.json();
+  return ClientLegalEngine.compareContracts(documentA, documentB);
 }
 
+/**
+ * Streaming chat with AI API key (Gemini / OpenAI) or built-in local engine
+ */
 export function streamChatApi(
   documentIds: string[],
   message: string,
@@ -65,64 +59,39 @@ export function streamChatApi(
   onError: (err: string) => void,
   signal?: AbortSignal
 ): void {
-  fetch(`${API_BASE_URL}/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ documentIds, message, conversationId }),
-    signal,
-  })
-    .then(async (res) => {
-      if (!res.ok || !res.body) {
-        throw new Error(`Chat API error (${res.status})`);
-      }
+  const convId = conversationId || `conv-${Date.now()}`;
+  onInit({ conversationId: convId });
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+  // Retrieve relevant chunks from client storage
+  const chunks = ClientLegalEngine.retrieveChunks(documentIds, message, 6);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split('\n\n');
-        buffer = events.pop() || '';
-
-        for (const evtBlock of events) {
-          if (!evtBlock.trim()) continue;
-          const lines = evtBlock.split('\n');
-          let eventType = 'message';
-          let dataStr = '';
-
-          for (const line of lines) {
-            if (line.startsWith('event: ')) {
-              eventType = line.slice(7).trim();
-            } else if (line.startsWith('data: ')) {
-              dataStr = line.slice(6).trim();
-            }
-          }
-
-          if (dataStr) {
-            try {
-              const data = JSON.parse(dataStr);
-              if (eventType === 'init') onInit(data);
-              else if (eventType === 'chunk') onChunk(data.content || '');
-              else if (eventType === 'done') onDone(data);
-              else if (eventType === 'error') onError(data.error || 'Unknown error');
-            } catch (e) {
-              console.warn('Failed to parse SSE data:', e);
-            }
-          }
-        }
-      }
+  AIProviderService.streamChat(message, chunks, onChunk, signal)
+    .then((result) => {
+      onDone({
+        conversationId: convId,
+        answer: result.answer,
+        citations: result.citations,
+      });
     })
     .catch((err) => {
       if (err.name !== 'AbortError') {
-        onError(err.message || 'Stream connection error');
+        // Fallback directly to local engine if stream failed
+        ClientLegalEngine.generateLocalAnswer(message, chunks, onChunk, signal)
+          .then((fallbackRes) => {
+            onDone({
+              conversationId: convId,
+              answer: fallbackRes.answer,
+              citations: fallbackRes.citations,
+            });
+          })
+          .catch((e) => onError(e.message || 'Analysis error'));
       }
     });
 }
 
+/**
+ * Deep agentic contract research directly in browser
+ */
 export function streamResearchApi(
   documentIds: string[],
   question: string,
@@ -130,48 +99,14 @@ export function streamResearchApi(
   onDone: (run: ResearchRun) => void,
   onError: (err: string) => void
 ): void {
-  fetch(`${API_BASE_URL}/research`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ documentIds, question }),
-  })
-    .then(async (res) => {
-      if (!res.ok || !res.body) throw new Error('Research request failed');
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split('\n\n');
-        buffer = events.pop() || '';
-
-        for (const evtBlock of events) {
-          if (!evtBlock.trim()) continue;
-          const lines = evtBlock.split('\n');
-          let eventType = 'message';
-          let dataStr = '';
-
-          for (const line of lines) {
-            if (line.startsWith('event: ')) eventType = line.slice(7).trim();
-            else if (line.startsWith('data: ')) dataStr = line.slice(6).trim();
-          }
-
-          if (dataStr) {
-            try {
-              const data = JSON.parse(dataStr);
-              if (eventType === 'step') onStep(data);
-              else if (eventType === 'done') onDone(data);
-            } catch (e) {
-              console.warn('Research SSE parse error:', e);
-            }
-          }
-        }
-      }
-    })
-    .catch((err) => onError(err.message || 'Research failed'));
+  try {
+    ClientLegalEngine.runAgenticResearch(
+      documentIds,
+      question,
+      onStep,
+      onDone
+    );
+  } catch (err: any) {
+    onError(err.message || 'Research failed');
+  }
 }

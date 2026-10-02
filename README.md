@@ -67,28 +67,14 @@ Below is the verified checklist of hiring assignment requirements mapped directl
 
 ## 5. Tech Stack
 
-### Frontend
-- **Framework**: Next.js 15 (App Router, Client Components)
-- **UI Library**: React 19, Tailwind CSS v4
-- **Icons**: Lucide React
-- **Animations / Micro-interactions**: Canvas-Confetti, Tailwind transitions
-
-### Backend
-- **Runtime**: Node.js v20
-- **Framework**: Express.js
-- **Language**: TypeScript
-- **File Parsing**: `pdf-parse` (PDF extraction), `mammoth` (DOCX extraction), `multer` (multipart upload middleware)
-
-### Database
-- **Database**: MongoDB (Local / MongoDB Atlas)
-- **ORM**: Mongoose
-
-### AI & Integration
-- **LLM Provider**: OpenAI API (`gpt-4o` / OpenAI Node SDK)
-- **Fallback Engine**: Local rule-based reasoning engine for offline/unconfigured environments
-
-### Testing
-- **Framework**: Jest, `ts-jest`, `supertest`
+### Architecture & Technologies
+- **Client**: Next.js 16 (Turbopack, App Router, React 19)
+- **Styling**: Tailwind CSS v4, Lucide Icons, Glassmorphism & Dark Mode
+- **Zero Backend / Zero Database**: Runs 100% in the browser using HTML5 LocalStorage & client-side parsing.
+- **AI Integrations**:
+  - **Google Gemini API** (`gemini-1.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro`) directly from browser
+  - **OpenAI API** (`gpt-4o-mini`, `gpt-4o`) directly from browser
+  - **Built-in Local Intelligence Engine**: Instant deterministic legal clause parsing and reasoning when running offline or without an API key.
 
 ---
 
@@ -96,34 +82,31 @@ Below is the verified checklist of hiring assignment requirements mapped directl
 
 ```mermaid
 flowchart TD
-    UI[Next.js Frontend]
-    API[Express API]
-    DB[(MongoDB)]
-    DOC[Document Processing Engine]
-    RET[Retrieval System]
-    AI[OpenAI / Agent Loop]
-    CIT[Citation Verification Engine]
-    CMP[Contract Comparison Engine]
+    UI[Next.js Frontend Workspace]
+    STORE[Browser LocalStorage Engine]
+    DOC[Client-Side File & Text Extractor]
+    RET[Semantic Retrieval & Synonym Booster]
+    AI[Gemini / OpenAI API or Local Engine]
+    CIT[Deterministic Citation Verifier]
+    CMP[Clause Comparison Engine]
 
-    UI -->|HTTP / SSE Streaming| API
-    API -->|Mongoose Models| DB
-    API -->|PDF / DOCX Parsing| DOC
-    DOC -->|Store Chunks & Pages| DB
-    API -->|BM25 & Tf-Idf Search| RET
+    UI -->|Upload PDF / DOCX / TXT| DOC
+    DOC -->|Generate Pages & Chunks| STORE
+    UI -->|User Question| RET
+    STORE -->|Load Chunks| RET
     RET -->|Context Chunks| AI
-    AI -->|Generated Output & Quotes| CIT
-    CIT -->|Verify Quotes Against Document| DB
-    CIT -->|Verified Stream Payload| UI
-    API -->|Clause Diffing| CMP
+    AI -->|Generated Stream & Quotations| CIT
+    CIT -->|Verified Citations & Character Offsets| UI
+    UI -->|Compare Contracts| CMP
+    CMP -->|Clause-Level Diff & Risk Score| UI
 ```
 
-### Component Roles
-1. **Next.js Frontend**: Segmented tab workspace (Q&A Assistant, Compare Versions, Agentic Research, Extract Clauses), multi-document selector, streaming chat renderer, and PDF/text document viewer with highlight overlay.
-2. **Express API**: Handles REST routes, file uploads, SSE stream formatting, and error middleware.
-3. **Document Processing Engine**: Validates files, extracts raw text, tracks page offsets, and parses agreements into clause/paragraph chunks.
-4. **Retrieval System**: Multi-stage lexical search combining n-gram tf-idf ranking, page metadata tags, and financial/monetary keyword boosting.
-5. **Citation Verification Engine**: Independent zero-trust validator ensuring quote strings exist in document source text before UI presentation.
-6. **Contract Comparison Engine**: Compares contract pairs, detects added/deleted/modified clauses, and ranks legal significance.
+### Key Capabilities
+1. **Zero Database / Zero Server**: No MongoDB, Express, or backend configuration needed. Start with a single command: `npm run dev`.
+2. **Flexible AI API Key Setup**: Click the AI button in the header to enter your Google Gemini (free API key) or OpenAI key, stored securely in browser `localStorage`.
+3. **Guaranteed Output**: If no key is entered or if external APIs are unreachable, the built-in deterministic legal intelligence engine automatically answers with exact citations and page references.
+4. **Preloaded Sample Contracts**: Master Services Agreement V1 and Revised V2 are loaded out-of-the-box for instant Q&A, comparison, and deep research testing.
+5. **Multi-Format Ingestion**: Upload PDF, DOCX, TXT, Markdown, or paste raw contract text directly into the application.
 
 ---
 
