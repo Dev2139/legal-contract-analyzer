@@ -2,15 +2,16 @@
 
 ## 1. Overview
 
-**Legal Contract Analyzer** is an enterprise-grade web application designed for analyzing, querying, comparing, and researching legal contracts (PDF and DOCX agreements).
+**Legal Contract Analyzer** is a **100% frontend-only** enterprise-grade web application for analyzing, querying, comparing, and researching legal contracts — with **zero backend** and **zero database** required.
 
-Legal contracts are notoriously long, dense, and complex. This application solves the critical problem of contract analysis by allowing legal professionals and business users to upload agreements and ask plain-language questions.
+Upload PDF, DOCX, or TXT contracts — or paste raw agreement text — and instantly query them with AI-powered legal intelligence using your own OpenAI or Google Gemini API key, or the built-in offline reasoning engine.
 
 Key guarantees and capabilities:
-- **Strict Grounding**: Answers are generated strictly using document content.
-- **Deterministic Citation Verification**: Every answer is backed by exact quotes from the contract, independently verified by backend algorithms before display to eliminate AI hallucinations.
-- **Interactive Deep-Linking**: Clicking any quote jumps directly to the source page and highlights the passage in context.
-- **Advanced Contract Analysis**: Supports multi-document analysis, substantive clause-level contract version comparison, and autonomous multi-round agentic document research.
+- **Zero Backend / Zero Database**: Runs entirely in the browser using HTML5 LocalStorage.
+- **Strict Grounding**: Answers are generated strictly from the uploaded document content.
+- **Deterministic Citation Verification**: Every quote is independently verified against exact character positions in the source document.
+- **Interactive Deep-Linking**: Clicking any verified citation jumps directly to the source page and highlights the exact passage.
+- **Advanced Contract Analysis**: Multi-document analysis, clause-level version comparison, and autonomous agentic research.
 
 ---
 
@@ -47,21 +48,32 @@ Below is the verified checklist of hiring assignment requirements mapped directl
 
 ## 3. Demo
 
-- **Live Application:** [https://legal-contract-analyzer-theta.vercel.app/](https://legal-contract-analyzer-theta.vercel.app/)
-- **GitHub:** TODO
-- **Demo Video:** TODO
+| | |
+|---|---|
+| 🌐 **Live App** | [https://legal-contract-analyzer-theta.vercel.app/](https://legal-contract-analyzer-theta.vercel.app/) |
+| 📦 **GitHub Repo** | [https://github.com/Dev2139/legal-contract-analyzer](https://github.com/Dev2139/legal-contract-analyzer) |
+
+### Quick Start
+
+1. Open the [Live App](https://legal-contract-analyzer-theta.vercel.app/)
+2. Two sample contracts (Master Services Agreement V1 & V2) are preloaded — start asking questions immediately.
+3. Click the **✨ AI Engine** button in the top-right header to enter your own OpenAI (`gpt-4o-mini`) or Google Gemini API key.
+4. Upload your own PDF / DOCX / TXT contract or paste raw clause text.
 
 ---
 
-## 4. Screenshots
+## 4. Features Overview
 
-> *Note: Placeholders indicate screen locations for evaluator demonstration.*
-
-- **Document Upload & Library**: `docs/screenshots/upload.png` *(TODO)*
-- **Chat with Verified Citations**: `docs/screenshots/chat-citations.png` *(TODO)*
-- **Citation Highlighting**: `docs/screenshots/citation-highlight.png` *(TODO)*
-- **Multi-Document Comparison**: `docs/screenshots/comparison.png` *(TODO)*
-- **Agentic Document Research**: `docs/screenshots/agent-research.png` *(TODO)*
+| Feature | Description |
+|---|---|
+| 📤 **Multi-format Upload** | PDF, DOCX, TXT, Markdown — or paste raw contract text |
+| 💬 **Q&A Assistant** | Ask plain-English questions, get streaming answers with verified citations |
+| 🔍 **Contract Comparison** | Clause-level diff between two contract versions with risk scoring |
+| 🤖 **Agentic Research** | Multi-step autonomous deep analysis with live research timeline |
+| 📋 **Clause Extractor** | Auto-detect Liability, Termination, Governing Law, Confidentiality & more |
+| 🔗 **Citation Highlighting** | Click any quote to jump directly to the source page and highlight it |
+| 🧠 **AI Providers** | Google Gemini, OpenAI, or built-in offline deterministic engine |
+| 🌙 **Dark Mode** | Full light/dark theme toggle |
 
 ---
 
@@ -114,72 +126,39 @@ flowchart TD
 
 ```text
 legal-contract-analyzer/
-├── client/                     # Next.js Frontend App
-│   ├── app/                    # App Router pages and layout
-│   │   ├── globals.css         # Styling system & dark mode variants
-│   │   ├── layout.tsx          # Root HTML layout
-│   │   └── page.tsx            # Main tab workspace container
-│   ├── components/             # React UI Components
-│   │   ├── ChatWindow.tsx      # Q&A Assistant & SSE stream view
-│   │   ├── CitationBadge.tsx   # Verified quote card component
-│   │   ├── ClauseExtractor.tsx # Standard clause extraction card
-│   │   ├── ComparisonView.tsx  # Contract version diff viewer
-│   │   ├── DocumentLibrary.tsx # Document upload & list sidebar
-│   │   ├── DocumentViewer.tsx  # PDF / DOCX page viewer & highlighter
-│   │   ├── Header.tsx          # App navbar & dark mode toggle
-│   │   └── ResearchTimeline.tsx# Agentic research activity feed
-│   ├── lib/                    # Client Utility Libraries
-│   │   ├── anonymize.ts        # PII anonymization & reverse mapping
-│   │   ├── api.ts              # API fetch & SSE stream helpers
-│   │   └── export.ts           # Formatted report exporter
-│   ├── types/                  # TypeScript interface definitions
-│   ├── next.config.ts          # Next.js build configuration
-│   ├── package.json            # Client dependencies
-│   └── vercel.json             # Vercel deployment manifest
-├── server/                     # Express Backend API
-│   ├── src/
-│   │   ├── config/             # Environment & MongoDB connection setup
-│   │   │   ├── database.ts
-│   │   │   └── env.ts
-│   │   ├── controllers/        # Express route controllers
-│   │   │   ├── ChatController.ts
-│   │   │   ├── ComparisonController.ts
-│   │   │   ├── ConversationController.ts
-│   │   │   ├── DocumentController.ts
-│   │   │   └── ResearchController.ts
-│   │   ├── models/             # Mongoose schemas
-│   │   │   ├── Conversation.ts
-│   │   │   └── Document.ts
-│   │   ├── routes/             # Express API routes
-│   │   │   ├── chatRoutes.ts
-│   │   │   ├── comparisonRoutes.ts
-│   │   │   ├── conversationRoutes.ts
-│   │   │   ├── documentRoutes.ts
-│   │   │   └── researchRoutes.ts
-│   │   ├── services/           # Core business logic & AI engines
-│   │   │   ├── agentService.ts
-│   │   │   ├── aiService.ts
-│   │   │   ├── citationService.ts
-│   │   │   ├── comparisonService.ts
-│   │   │   ├── docxService.ts
-│   │   │   ├── pdfService.ts
-│   │   │   └── ragService.ts
-│   │   ├── tools/              # Agentic research tool definitions
-│   │   │   └── researchTools.ts
-│   │   ├── utils/              # Text normalization & matching helpers
-│   │   │   └── textNormalization.ts
-│   │   ├── __tests__/          # Backend Jest test suites
-│   │   │   ├── citationVerification.test.ts
-│   │   │   └── comparison.test.ts
-│   │   ├── app.ts              # Express middleware & app definition
-│   │   └── server.ts           # Express server entry point
-│   ├── api/                    # Vercel serverless function entrypoint
+├── client/                       # Next.js 16 Frontend App (entire application)
+│   ├── app/                      # App Router pages & layout
+│   │   ├── globals.css           # Global styles & dark mode tokens
+│   │   ├── layout.tsx            # Root HTML shell & font setup
+│   │   └── page.tsx              # Main tabbed workspace container
+│   ├── components/               # React UI Components
+│   │   ├── AISettingsModal.tsx   # AI provider & API key configuration modal
+│   │   ├── ChatWindow.tsx        # Q&A Assistant with streaming & citation cards
+│   │   ├── CitationCard.tsx      # Verified quote card with jump-to-page button
+│   │   ├── ClauseExtractor.tsx   # Dynamic standard clause extraction UI
+│   │   ├── ComparisonView.tsx    # Contract version diff viewer
+│   │   ├── DocumentLibrary.tsx   # Contract upload & library sidebar
+│   │   ├── DocumentViewer.tsx    # Page-by-page viewer with citation highlight
+│   │   ├── Header.tsx            # App navbar with AI status & dark mode toggle
+│   │   ├── ResearchTimeline.tsx  # Agentic research step-by-step timeline
+│   │   └── UploadDropzone.tsx    # File upload dropzone + paste contract modal
+│   ├── lib/                      # Client-Side Libraries & Engines
+│   │   ├── aiProvider.ts         # Google Gemini / OpenAI streaming API client
+│   │   ├── anonymize.ts          # PII anonymization & reverse mapping
+│   │   ├── api.ts                # Public API surface (wraps all client engines)
+│   │   ├── clientLegalEngine.ts  # Retrieval, citation verifier, comparator, researcher
+│   │   ├── export.ts             # Answer export helper
+│   │   ├── storage.ts            # Browser LocalStorage document/chunk store
+│   │   └── textExtraction.ts     # PDF.js & JSZip browser-based text extraction
+│   ├── types/                    # TypeScript interface definitions
 │   │   └── index.ts
-│   ├── package.json            # Server dependencies & build scripts
-│   └── vercel.json             # Vercel backend routing manifest
-├── package.json                # Monorepo root workspace scripts
-├── .env.example                # Root environment template
-└── README.md                   # Project documentation
+│   ├── .env.local                # Local env (not committed — add API keys here)
+│   ├── next.config.ts            # Next.js build configuration
+│   └── package.json              # Frontend dependencies
+├── package.json                  # Root shortcut scripts
+├── .env.example                  # Environment variable template
+├── .gitignore
+└── README.md
 ```
 
 ---
