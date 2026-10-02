@@ -10,7 +10,6 @@ out/
 # Environment files
 .env
 .env.local
-.env.production
 .env.development
 
 # Uploads & Temp
