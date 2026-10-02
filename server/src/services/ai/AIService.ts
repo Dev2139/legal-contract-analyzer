@@ -158,17 +158,18 @@ ${query}`;
     if (isMoneyQuery && moneyMatches.length > 0) {
       directAnswer = `The total financial amount specified in **${topChunk.documentName}** is **${moneyMatches.join(', ')}** (under *${topChunk.section}*).`;
     } else {
-      directAnswer = `According to **${topChunk.documentName}** (Page ${topChunk.pageNumber}, *${topChunk.section}*): ${matchedSentence.trim()}`;
+      directAnswer = `According to **${topChunk.documentName}** (Page ${topChunk.pageNumber}, *${topChunk.section}*):\n${matchedSentence.trim()}`;
     }
 
     const textToStream =
       `${directAnswer}\n\n` +
-      `### Key Details & Clause Provisions:\n` +
-      `- **Section:** ${topChunk.section} (Page ${topChunk.pageNumber})\n` +
-      `- **Clause Excerpt:** "${matchedSentence.trim()}"\n` +
+      `### Key Clause Breakdown:\n\n` +
+      `- **Document Section:** ${topChunk.section} (Page ${topChunk.pageNumber})\n\n` +
+      `- **Primary Provision:** "${matchedSentence.trim()}"\n\n` +
       (validChunks.length > 1
-        ? `- **Additional Context (Page ${validChunks[1].pageNumber} - ${validChunks[1].section}):** "${validChunks[1].text.slice(0, 130).trim()}..."\n`
+        ? `- **Supporting Context:** Page ${validChunks[1].pageNumber} (${validChunks[1].section}) — "${validChunks[1].text.slice(0, 130).trim()}..."\n\n`
         : '');
+
 
     for (let i = 0; i < textToStream.length; i += 4) {
       if (signal?.aborted) break;

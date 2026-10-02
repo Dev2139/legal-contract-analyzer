@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   body {
     @apply bg-slate-50 text-slate-900 font-sans antialiased transition-colors duration-200;
@@ -32,4 +34,5 @@
 .dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(71, 85, 105, 0.8);
 }
+
 

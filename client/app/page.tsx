@@ -23,6 +23,34 @@ export default function Home() {
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        setIsDarkMode(true);
+        document.documentElement.classList.add('dark');
+      } else {
+        setIsDarkMode(false);
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, []);
+
+  const handleToggleDarkMode = () => {
+    setIsDarkMode((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+      return next;
+    });
+  };
+
+
   const loadDocuments = () => {
     fetchDocuments()
       .then((docs) => {
@@ -107,8 +135,9 @@ export default function Home() {
           rightSidebarOpen={rightSidebarOpen}
           setRightSidebarOpen={setRightSidebarOpen}
           isDarkMode={isDarkMode}
-          setIsDarkMode={setIsDarkMode}
+          setIsDarkMode={handleToggleDarkMode}
         />
+
 
         {/* Workspace Body */}
         <div className="flex-1 flex overflow-hidden relative">
