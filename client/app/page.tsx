@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+
 import { Header } from '../components/Header';
 import { DocumentLibrary } from '../components/DocumentLibrary';
 import { ChatWindow } from '../components/ChatWindow';
@@ -14,6 +15,7 @@ import { MessageSquare, GitCompare, Search } from 'lucide-react';
 export default function Home() {
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
+  const activeDocIdRef = useRef<string | null>(null);
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'chat' | 'comparison' | 'research'>('chat');
   const [targetCitation, setTargetCitation] = useState<Citation | null>(null);
@@ -22,6 +24,12 @@ export default function Home() {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Helper to update active document state & ref synchronously
+  const setActiveDocument = (id: string | null) => {
+    activeDocIdRef.current = id;
+    setActiveDocId(id);
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -50,14 +58,14 @@ export default function Home() {
     });
   };
 
-
   const loadDocuments = () => {
     fetchDocuments()
       .then((docs) => {
         if (Array.isArray(docs)) {
           setDocuments(docs);
-          if (docs.length > 0 && !activeDocId) {
-            setActiveDocId(docs[0]._id);
+          // Only auto-select first document on initial load if NO document is active
+          if (docs.length > 0 && !activeDocIdRef.current) {
+            setActiveDocument(docs[0]._id);
             setSelectedDocIds([docs[0]._id]);
           }
         }
@@ -67,7 +75,6 @@ export default function Home() {
       });
   };
 
-
   useEffect(() => {
     loadDocuments();
     const interval = setInterval(loadDocuments, 5000);
@@ -76,14 +83,14 @@ export default function Home() {
 
   const handleDocumentUploaded = (newDoc: LegalDocument) => {
     setDocuments((prev) => [newDoc, ...prev]);
-    setActiveDocId(newDoc._id);
+    setActiveDocument(newDoc._id);
     if (!selectedDocIds.includes(newDoc._id)) {
       setSelectedDocIds((prev) => [...prev, newDoc._id]);
     }
   };
 
   const handleSelectDocument = (id: string) => {
-    setActiveDocId(id);
+    setActiveDocument(id);
     if (!selectedDocIds.includes(id)) {
       setSelectedDocIds([id]);
     }
@@ -102,9 +109,9 @@ export default function Home() {
       await deleteDocumentById(id);
       setDocuments((prev) => prev.filter((d) => d._id !== id));
       setSelectedDocIds((prev) => prev.filter((dId) => dId !== id));
-      if (activeDocId === id) {
+      if (activeDocIdRef.current === id) {
         const remaining = documents.filter((d) => d._id !== id);
-        setActiveDocId(remaining.length > 0 ? remaining[0]._id : null);
+        setActiveDocument(remaining.length > 0 ? remaining[0]._id : null);
       }
     } catch (err) {
       console.error('Failed to delete document:', err);
@@ -113,11 +120,12 @@ export default function Home() {
 
   const handleSelectCitation = (citation: Citation) => {
     if (citation.documentId) {
-      setActiveDocId(citation.documentId);
+      setActiveDocument(citation.documentId);
     }
     setTargetCitation(citation);
     setRightSidebarOpen(true);
   };
+
 
   const activeDoc = documents.find((d) => d._id === activeDocId) || null;
   const selectedDocs = documents.filter((d) => selectedDocIds.includes(d._id));
