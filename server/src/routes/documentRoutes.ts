@@ -5,12 +5,15 @@ import fs from 'fs';
 import os from 'os';
 import { DocumentController } from '../controllers/DocumentController';
 
-// Use /tmp in serverless environments (Vercel), regular uploads/ dir locally
-const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
-const uploadsDir = isServerless ? os.tmpdir() : path.resolve(__dirname, '../../uploads');
-
-if (!isServerless && !fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+// Determine writable upload directory:
+// Try the normal uploads/ dir first; if the FS is read-only (Vercel serverless), fall back to /tmp
+let uploadsDir: string;
+try {
+  const preferred = path.resolve(__dirname, '../../uploads');
+  fs.mkdirSync(preferred, { recursive: true });
+  uploadsDir = preferred;
+} catch {
+  uploadsDir = os.tmpdir();
 }
 
 const storage = multer.diskStorage({
