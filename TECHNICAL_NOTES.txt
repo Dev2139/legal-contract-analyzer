@@ -1,0 +1,56 @@
+================================================================================
+                       LEGAL CONTRACT ANALYZER — TECHNICAL NOTES
+                                    by Dev Patel
+================================================================================
+
+1. HOW QUOTE VERIFICATION WORKS & WHERE IT COULD FAIL
+--------------------------------------------------------------------------------
+Our quote verification engine enforces zero-trust citation grounding. When an AI
+model generates a candidate quote, the engine strips tabs, newlines, and extra
+spaces (normalizeWhitespace). It performs a two-pass match against raw document text:
+  • Pass 1: Exact Substring Matching against the normalized document string.
+  • Pass 2: Fuzzy Token Sliding Window (Levenshtein similarity > 0.88) to catch
+    hyphenated line wraps or extraction artifacts.
+Upon verification, true page numbers and character offsets are mapped to enable
+interactive yellow highlighting in the PDF/DOCX viewer.
+
+Where it could fail:
+  • Extracted text with severe OCR distortion or legacy PDF font encoding errors.
+  • Short generic quotes (e.g. "Payment terms") occurring dozens of times across
+    a contract without sufficient surrounding section context.
+
+
+2. HOW LARGE DOCUMENTS ARE HANDLED
+--------------------------------------------------------------------------------
+Contracts up to 150+ pages are handled through client-side stream chunking:
+  • Overlapping Chunking: Text is split into 500-token chunks with 50-token
+    overlaps to preserve clause and paragraph continuity.
+  • Multi-Stage Retrieval: BM25 lexical keyword scoring combined with monetary
+    pattern boosting (+25 score for currency symbols like $, AED, INR) ensures
+    financial and liability clauses rank highest for relevant queries.
+  • Memory Optimization: Document chunks are persisted in browser LocalStorage
+    and loaded lazily, avoiding context window overflows and high API costs.
+
+
+3. PART C CHOICE, PROGRESS & HARDEST PART
+--------------------------------------------------------------------------------
+• Option Chosen: Part C — Option 2: Agentic Document Research.
+• Rationale: Real-world legal research is inherently multi-step—lawyers scan headers,
+  look up specific sections, and cross-reference clauses before forming answers.
+• Progress: 100% Fully Implemented. The autonomous agent operates in a tool-calling
+  loop using search_document, get_section, and list_clauses with a hard safety cap of
+  6 execution rounds and a live visual activity timeline.
+• Hardest Part: Building deterministic, multi-round tool-calling in a pure frontend
+  browser environment while ensuring tool outputs are correctly parsed and verified
+  without causing infinite loops or state sync bugs.
+
+
+4. WHAT I WOULD BUILD NEXT WITH MORE TIME
+--------------------------------------------------------------------------------
+  1. Client-side Tesseract.js OCR integration for scanning non-text PDFs.
+  2. Tracked-change DOCX XML exporter for legal redlining (Part C Option 1).
+  3. Hybrid Retrieval: Combining local vector embeddings (WebGPU / Transformers.js)
+     with BM25 lexical search for enhanced semantic retrieval.
+  4. Multi-Contract Export: Exporting multi-agreement comparison reports to PDF/Word.
+
+================================================================================
