@@ -101,24 +101,26 @@ export class ClientStorage {
     if (!this.isBrowser()) {
       return { provider: 'local', apiKey: '', model: '' };
     }
+    const envOpenAI = process.env.NEXT_PUBLIC_OPENAI_API_KEY || '';
+    const envGemini = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.AI_CONFIG);
       if (raw) {
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        if (parsed.apiKey && parsed.apiKey.trim()) {
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn('Failed to parse AI config:', e);
     }
 
-    // Default to env key if configured
-    const envGemini = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-    const envOpenAI = process.env.NEXT_PUBLIC_OPENAI_API_KEY || '';
-
-    if (envGemini) {
-      return { provider: 'gemini', apiKey: envGemini, model: 'gemini-1.5-flash' };
-    }
     if (envOpenAI) {
       return { provider: 'openai', apiKey: envOpenAI, model: 'gpt-4o-mini' };
+    }
+    if (envGemini) {
+      return { provider: 'gemini', apiKey: envGemini, model: 'gemini-1.5-flash' };
     }
 
     return { provider: 'local', apiKey: '', model: 'Local Intelligence Engine' };
