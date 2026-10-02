@@ -2,10 +2,14 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { DocumentController } from '../controllers/DocumentController';
 
-const uploadsDir = path.resolve(__dirname, '../../uploads');
-if (!fs.existsSync(uploadsDir)) {
+// Use /tmp in serverless environments (Vercel), regular uploads/ dir locally
+const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+const uploadsDir = isServerless ? os.tmpdir() : path.resolve(__dirname, '../../uploads');
+
+if (!isServerless && !fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
