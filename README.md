@@ -51,6 +51,7 @@ Below is the verified checklist of hiring assignment requirements mapped directl
 | | |
 |---|---|
 | 🌐 **Live App** | [https://legal-contract-analyzer-theta.vercel.app/](https://legal-contract-analyzer-theta.vercel.app/) |
+| 🎬 **Demo Video** | [https://youtu.be/k6Hc7x1-Wu4](https://youtu.be/k6Hc7x1-Wu4) |
 | 📦 **GitHub Repo** | [https://github.com/Dev2139/legal-contract-analyzer](https://github.com/Dev2139/legal-contract-analyzer) |
 
 ### Quick Start
@@ -62,7 +63,26 @@ Below is the verified checklist of hiring assignment requirements mapped directl
 
 ---
 
-## 4. Features Overview
+## 4. Screenshots
+
+### Document Upload & Library
+![Document Upload & Library](https://res.cloudinary.com/urzka7oz/image/upload/v1790944266/Screenshot_2026-10-02_175543.png)
+
+### Chat with Verified Citations
+![Chat with Verified Citations](https://res.cloudinary.com/urzka7oz/image/upload/v1790944265/Screenshot_2026-10-02_175549.png)
+
+### Citation Highlighting
+![Citation Highlighting](https://res.cloudinary.com/urzka7oz/image/upload/v1790944266/Screenshot_2026-10-02_175802.png)
+
+### Multi-Document Comparison
+![Multi-Document Comparison](https://res.cloudinary.com/urzka7oz/image/upload/v1790944266/Screenshot_2026-10-02_175934.png)
+
+### Agentic Document Research
+![Agentic Document Research](https://res.cloudinary.com/urzka7oz/image/upload/v1790944266/Screenshot_2026-10-02_180013.png)
+
+---
+
+## 5. Features Overview
 
 | Feature | Description |
 |---|---|
