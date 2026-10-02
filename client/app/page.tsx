@@ -26,14 +26,19 @@ export default function Home() {
   const loadDocuments = () => {
     fetchDocuments()
       .then((docs) => {
-        setDocuments(docs);
-        if (docs.length > 0 && !activeDocId) {
-          setActiveDocId(docs[0]._id);
-          setSelectedDocIds([docs[0]._id]);
+        if (Array.isArray(docs)) {
+          setDocuments(docs);
+          if (docs.length > 0 && !activeDocId) {
+            setActiveDocId(docs[0]._id);
+            setSelectedDocIds([docs[0]._id]);
+          }
         }
       })
-      .catch((err) => console.error('Error fetching documents:', err));
+      .catch((err) => {
+        // Silently catch connection error when server is starting up or offline
+      });
   };
+
 
   useEffect(() => {
     loadDocuments();

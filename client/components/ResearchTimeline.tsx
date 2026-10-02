@@ -3,6 +3,8 @@ import { LegalDocument, ResearchRun, ResearchStep, Citation } from '../types';
 import { streamResearchApi } from '../lib/api';
 import { Search, CheckCircle2, Loader2, Bot, AlertCircle, FileText } from 'lucide-react';
 import { CitationCard } from './CitationCard';
+import { FormattedAnswer } from './FormattedAnswer';
+
 
 interface ResearchTimelineProps {
   documents: LegalDocument[];
@@ -134,9 +136,9 @@ export const ResearchTimeline: React.FC<ResearchTimelineProps> = ({ documents, o
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Analysis Findings & Summary</h3>
             </div>
 
-            <div className="whitespace-pre-wrap text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans">
-              {researchRun.finalAnswer}
-            </div>
+            <FormattedAnswer content={researchRun.finalAnswer} />
+
+
 
             {researchRun.citations && researchRun.citations.length > 0 && (
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">

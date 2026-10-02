@@ -98,12 +98,9 @@ export class RetrievalService {
     // Sort descending by score
     scoredChunks.sort((a, b) => b.score - a.score);
 
-    // Return top matching chunks or fallback to initial chunks if query is broad
-    const topResults = scoredChunks.slice(0, topK);
-    if (topResults.every((r) => r.score === 0)) {
-      return scoredChunks.slice(0, Math.min(chunks.length, topK));
-    }
-
-    return topResults.filter((r) => r.score > 0 || topResults.indexOf(r) < 3);
+    // Return only chunks that matched keywords (score > 0)
+    const matchingChunks = scoredChunks.filter((r) => r.score > 0);
+    return matchingChunks.slice(0, topK);
   }
 }
+

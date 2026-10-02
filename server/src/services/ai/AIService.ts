@@ -123,8 +123,10 @@ ${query}`;
     onChunk: (text: string) => void,
     signal?: AbortSignal
   ): Promise<string> {
-    if (chunks.length === 0 || chunks.every((c) => c.score === 0)) {
-      const msg = 'I could not find sufficient evidence in the document to answer this confidently.';
+    const validChunks = chunks.filter((c) => c.score > 0);
+
+    if (validChunks.length === 0) {
+      const msg = `I could not find any relevant clauses or evidence in the selected document(s) regarding "${query}".`;
       for (const char of msg) {
         if (signal?.aborted) break;
         onChunk(char);
@@ -133,16 +135,17 @@ ${query}`;
       return msg;
     }
 
-    // Pick top relevant chunks
-    const topChunk = chunks[0];
+    // Pick top relevant chunk
+    const topChunk = validChunks[0];
     const cleanQ = query.toLowerCase();
 
     // Extract key sentences matching query words
     const sentences = topChunk.text.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 10);
-    let matchedSentence = sentences.find((s) => {
-      const sLower = s.toLowerCase();
-      return cleanQ.split(' ').some((w) => w.length > 3 && sLower.includes(w));
-    }) || sentences[0] || topChunk.text.slice(0, 180);
+    const matchedSentence =
+      sentences.find((s) => {
+        const sLower = s.toLowerCase();
+        return cleanQ.split(' ').some((w) => w.length > 3 && sLower.includes(w));
+      }) || sentences[0] || topChunk.text.slice(0, 180);
 
     const textToStream =
       `Based on contract evidence from **${topChunk.documentName || 'Document'}** (Page ${topChunk.pageNumber}, *${topChunk.section}*):\n\n` +
@@ -150,9 +153,9 @@ ${query}`;
       `> "${matchedSentence.trim()}"\n\n` +
       `### Detailed Analysis:\n` +
       `- **Section Reference:** ${topChunk.section}\n` +
-      `- **Primary Obligation / Provision:** ${sentences.slice(0, 2).join(' ')}\n` +
-      (chunks.length > 1 && chunks[1].score > 0
-        ? `- **Supporting Context (Page ${chunks[1].pageNumber} - ${chunks[1].section}):** "${chunks[1].text.slice(0, 140).trim()}..."\n`
+      `- **Primary Obligation / Provision:** ${matchedSentence.trim()}\n` +
+      (validChunks.length > 1
+        ? `- **Supporting Context (Page ${validChunks[1].pageNumber} - ${validChunks[1].section}):** "${validChunks[1].text.slice(0, 140).trim()}..."\n`
         : '') +
       `\n*All extracted quotations have been verified directly against source text.*`;
 
@@ -166,3 +169,4 @@ ${query}`;
     return textToStream;
   }
 }
+

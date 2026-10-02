@@ -3,6 +3,8 @@ import { Send, Square, MessageSquare, Bot, User, Check, Copy, HelpCircle, FileTe
 import { Message, Citation, LegalDocument } from '../types';
 import { streamChatApi } from '../lib/api';
 import { CitationCard } from './CitationCard';
+import { FormattedAnswer } from './FormattedAnswer';
+
 
 interface ChatWindowProps {
   selectedDocuments: LegalDocument[];
@@ -196,7 +198,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ selectedDocuments, onSel
                   </button>
                 )}
 
-                <div className="whitespace-pre-wrap">{msg.content}</div>
+                <FormattedAnswer content={msg.content} />
+
+
 
                 {/* Verified Citations List */}
                 {msg.citations && msg.citations.length > 0 && (
