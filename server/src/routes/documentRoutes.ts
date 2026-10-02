@@ -1,20 +1,13 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
 import os from 'os';
 import { DocumentController } from '../controllers/DocumentController';
 
-// Determine writable upload directory:
-// Try the normal uploads/ dir first; if the FS is read-only (Vercel serverless), fall back to /tmp
-let uploadsDir: string;
-try {
-  const preferred = path.resolve(__dirname, '../../uploads');
-  fs.mkdirSync(preferred, { recursive: true });
-  uploadsDir = preferred;
-} catch {
-  uploadsDir = os.tmpdir();
-}
+// Always use the OS temp directory for uploads.
+// Uploaded files are temporary — text is extracted into MongoDB then the file is no longer needed.
+// This avoids read-only filesystem errors on serverless platforms (Vercel, AWS Lambda).
+const uploadsDir = os.tmpdir();
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
