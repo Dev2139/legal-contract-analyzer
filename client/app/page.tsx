@@ -9,7 +9,7 @@ import { ResearchTimeline } from '../components/ResearchTimeline';
 import { DocumentViewer } from '../components/DocumentViewer';
 import { fetchDocuments, deleteDocumentById } from '../lib/api';
 import { LegalDocument, Citation } from '../types';
-import { MessageSquare, GitCompare, Sparkles } from 'lucide-react';
+import { MessageSquare, GitCompare, Search } from 'lucide-react';
 
 export default function Home() {
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
@@ -17,6 +17,11 @@ export default function Home() {
   const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'chat' | 'comparison' | 'research'>('chat');
   const [targetCitation, setTargetCitation] = useState<Citation | null>(null);
+
+  // Responsive Sidebar Toggle States
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const loadDocuments = () => {
     fetchDocuments()
@@ -78,6 +83,7 @@ export default function Home() {
       setActiveDocId(citation.documentId);
     }
     setTargetCitation(citation);
+    setRightSidebarOpen(true);
   };
 
   const activeDoc = documents.find((d) => d._id === activeDocId) || null;
@@ -85,84 +91,109 @@ export default function Home() {
   const readyCount = documents.filter((d) => d.status === 'ready').length;
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      <Header documentCount={documents.length} readyCount={readyCount} />
-
-      {/* Main Workspace Layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Column: Document Library */}
-        <DocumentLibrary
-          documents={documents}
-          activeDocumentId={activeDocId}
-          selectedDocumentIds={selectedDocIds}
-          onDocumentUploaded={handleDocumentUploaded}
-          onSelectDocument={handleSelectDocument}
-          onToggleDocumentCheck={handleToggleDocumentCheck}
-          onDeleteDocument={handleDeleteDocument}
+    <div className={isDarkMode ? 'dark' : ''}>
+      <div className="flex flex-col h-screen w-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden font-sans transition-colors">
+        <Header
+          documentCount={documents.length}
+          readyCount={readyCount}
+          activeDocName={activeDoc?.originalName}
+          leftSidebarOpen={leftSidebarOpen}
+          setLeftSidebarOpen={setLeftSidebarOpen}
+          rightSidebarOpen={rightSidebarOpen}
+          setRightSidebarOpen={setRightSidebarOpen}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
         />
 
-        {/* Center Column: Mode Tabs & Active Tool */}
-        <main className="flex-1 flex flex-col min-w-0 bg-slate-950 border-r border-slate-800 overflow-hidden">
-          {/* Navigation Bar Tabs */}
-          <div className="flex items-center space-x-1.5 bg-slate-950 border-b border-slate-800 px-4 py-2.5 text-xs">
-            <button
-              onClick={() => setActiveTab('chat')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold transition-all ${
-                activeTab === 'chat'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Contract Chat</span>
-            </button>
+        {/* Workspace Body */}
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Left Panel: Contract Library */}
+          {leftSidebarOpen && (
+            <DocumentLibrary
+              documents={documents}
+              activeDocumentId={activeDocId}
+              selectedDocumentIds={selectedDocIds}
+              onDocumentUploaded={handleDocumentUploaded}
+              onSelectDocument={handleSelectDocument}
+              onToggleDocumentCheck={handleToggleDocumentCheck}
+              onDeleteDocument={handleDeleteDocument}
+            />
+          )}
 
-            <button
-              onClick={() => setActiveTab('comparison')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold transition-all ${
-                activeTab === 'comparison'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <GitCompare className="w-4 h-4" />
-              <span>Contract Comparison</span>
-            </button>
+          {/* Center Main Panel: Tabs & Views */}
+          <main className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors">
+            {/* Segmented Tab Navigation Bar */}
+            <div className="flex items-center justify-between bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-2 text-xs">
+              <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                <button
+                  onClick={() => setActiveTab('chat')}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    activeTab === 'chat'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Q&A Assistant</span>
+                </button>
 
-            <button
-              onClick={() => setActiveTab('research')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-bold transition-all ${
-                activeTab === 'research'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Agentic Research</span>
-            </button>
-          </div>
+                <button
+                  onClick={() => setActiveTab('comparison')}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    activeTab === 'comparison'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <GitCompare className="w-3.5 h-3.5" />
+                  <span>Compare Versions</span>
+                </button>
 
-          {/* Active View Container */}
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            {activeTab === 'chat' && (
-              <ChatWindow
-                selectedDocuments={selectedDocs}
-                onSelectCitation={handleSelectCitation}
-              />
-            )}
-            {activeTab === 'comparison' && <ComparisonView documents={documents} />}
-            {activeTab === 'research' && (
-              <ResearchTimeline
-                documents={documents}
-                onSelectCitation={handleSelectCitation}
-              />
-            )}
-          </div>
-        </main>
+                <button
+                  onClick={() => setActiveTab('research')}
+                  className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                    activeTab === 'research'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Deep Analysis</span>
+                </button>
+              </div>
 
-        {/* Right Column: Document Viewer & Highlight Overlay */}
-        <DocumentViewer document={activeDoc} targetCitation={targetCitation} />
+              {selectedDocs.length > 0 && (
+                <div className="hidden sm:block text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                  Querying {selectedDocs.length} contract(s)
+                </div>
+              )}
+            </div>
+
+            {/* Active Workspace View */}
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              {activeTab === 'chat' && (
+                <ChatWindow
+                  selectedDocuments={selectedDocs}
+                  onSelectCitation={handleSelectCitation}
+                />
+              )}
+              {activeTab === 'comparison' && <ComparisonView documents={documents} />}
+              {activeTab === 'research' && (
+                <ResearchTimeline
+                  documents={documents}
+                  onSelectCitation={handleSelectCitation}
+                />
+              )}
+            </div>
+          </main>
+
+          {/* Right Panel: Document Viewer */}
+          {rightSidebarOpen && (
+            <DocumentViewer document={activeDoc} targetCitation={targetCitation} />
+          )}
+        </div>
       </div>
     </div>
   );
-};
+}
+
